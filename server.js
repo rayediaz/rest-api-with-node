@@ -1,7 +1,7 @@
-const Joi = require('joi')
 const express = require('express')
-const courses = require('./data')
 const app = express()
+const courses = require('./data')
+const utils = require('./utils')
 
 app.use(express.json())
 
@@ -14,13 +14,9 @@ app.get('/api/courses', (req, res) => {
 })
 
 app.post('/api/courses', (req, res) => {
-  const shema = {
-    name: Joi.string().min(3).required()
-  }
-
-  const result = Joi.validate(req.body, shema)
-  if (result.error) {
-    res.status(400).send(result.error.details[0].message)
+  const { error } = utils.validate(req.body)
+  if (error) {
+    res.status(400).send(error.details[0].message)
     return
   }
 
@@ -31,6 +27,32 @@ app.post('/api/courses', (req, res) => {
 
   courses.push(course)
   res.status(201).send(course)
+})
+
+app.put('/api/courses/:id', (req, res) => {
+  const { id } = req.params
+  const course = courses.find(course => course.id === parseInt(id))
+  if (!course) res.status(404).send('course not found')
+
+  const { error } = utils.validate(req.body)
+  if (error) {
+    res.status(400).send(error.details[0].message)
+    return
+  }
+
+  course.name = req.body.name
+  res.status(200).send(course)
+})
+
+app.delete('/api/courses/:id', (req, res) => {
+  const { id } = req.params
+  const course = courses.find(course => course.id === parseInt(id))
+  if (!course) res.status(404).send('course not found')
+
+  const index = courses.indexOf(course)
+  courses.splice(index, 1)
+
+  res.status(200).send(course)
 })
 
 app.get('/api/courses/:id', (req, res) => {
