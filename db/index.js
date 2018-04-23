@@ -1,5 +1,6 @@
 const r = require('rethinkdb')
 const config = require('../config')
+
 class Db {
   connect () {
     this.connection = r.connect({
