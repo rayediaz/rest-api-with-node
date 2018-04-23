@@ -15,10 +15,7 @@ app.get('/api/courses', (req, res) => {
 
 app.post('/api/courses', (req, res) => {
   const { error } = utils.validate(req.body)
-  if (error) {
-    res.status(400).send(error.details[0].message)
-    return
-  }
+  if (error) return res.status(400).send(error.details[0].message)
 
   const course = {
     id: courses.length++,
@@ -30,15 +27,12 @@ app.post('/api/courses', (req, res) => {
 })
 
 app.put('/api/courses/:id', (req, res) => {
-  const { id } = req.params
+  const { id } = req.params.id
   const course = courses.find(course => course.id === parseInt(id))
-  if (!course) res.status(404).send('course not found')
+  if (!course) return res.status(404).send('course not found')
 
   const { error } = utils.validate(req.body)
-  if (error) {
-    res.status(400).send(error.details[0].message)
-    return
-  }
+  if (error) return res.status(400).send(error.details[0].message)
 
   course.name = req.body.name
   res.status(200).send(course)
@@ -47,7 +41,7 @@ app.put('/api/courses/:id', (req, res) => {
 app.delete('/api/courses/:id', (req, res) => {
   const { id } = req.params
   const course = courses.find(course => course.id === parseInt(id))
-  if (!course) res.status(404).send('course not found')
+  if (!course) return res.status(404).send('course not found')
 
   const index = courses.indexOf(course)
   courses.splice(index, 1)
@@ -58,7 +52,7 @@ app.delete('/api/courses/:id', (req, res) => {
 app.get('/api/courses/:id', (req, res) => {
   const { id } = req.params
   const course = courses.find(course => course.id === parseInt(id))
-  if (!course) res.status(404).send('course not found')
+  if (!course) return res.status(404).send('course not found')
   res.status(200).send(course)
 })
 
