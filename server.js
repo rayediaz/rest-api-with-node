@@ -1,59 +1,59 @@
 const express = require('express')
 const app = express()
-const courses = require('./data')
+
 const utils = require('./utils')
+const Db = require('./db')
+const db = new Db()
 
 app.use(express.json())
+
 
 app.get('/', (req, res) => {
   res.status(200).send('Hey there!')
 })
 
-app.get('/api/courses', (req, res) => {
-  res.status(200).send(courses)
+app.get('/api/songs', (req, res) => {
+  db.connect()
+  db.getSongs()
+    .then(songs => res.status(200).send(songs))
 })
 
-app.post('/api/courses', (req, res) => {
+app.post('/api/songs', (req, res) => {
   const { error } = utils.validate(req.body)
   if (error) return res.status(400).send(error.details[0].message)
 
-  const course = {
-    id: courses.length++,
-    name: req.body.name
-  }
+  let song = req.body
 
-  courses.push(course)
-  res.status(201).send(course)
+  db.connect()
+  db.saveSong(song)
+    .then(song => res.status(201).send(song))
 })
 
-app.put('/api/courses/:id', (req, res) => {
-  const { id } = req.params.id
-  const course = courses.find(course => course.id === parseInt(id))
-  if (!course) return res.status(404).send('course not found')
+app.put('/api/songs/:id', (req, res) => {
+  const { id } = req.params
+  const newSong = req.body
 
   const { error } = utils.validate(req.body)
   if (error) return res.status(400).send(error.details[0].message)
 
-  course.name = req.body.name
-  res.status(200).send(course)
+  db.connect()
+  db.updateSong(id, newSong)
+    .then(song => res.status(200).send(song))
 })
 
-app.delete('/api/courses/:id', (req, res) => {
+app.delete('/api/songs/:id', (req, res) => {
   const { id } = req.params
-  const course = courses.find(course => course.id === parseInt(id))
-  if (!course) return res.status(404).send('course not found')
 
-  const index = courses.indexOf(course)
-  courses.splice(index, 1)
-
-  res.status(200).send(course)
+  db.connect()
+  db.deleteSong(id)
+    .then(song => res.status(200).send(song))
 })
 
-app.get('/api/courses/:id', (req, res) => {
+app.get('/api/songs/:id', (req, res) => {
   const { id } = req.params
-  const course = courses.find(course => course.id === parseInt(id))
-  if (!course) return res.status(404).send('course not found')
-  res.status(200).send(course)
+  db.connect()
+  db.getSong(id)
+    .then(song => res.status(200).send(song))
 })
 
 const port = process.env.PORT || 3000
